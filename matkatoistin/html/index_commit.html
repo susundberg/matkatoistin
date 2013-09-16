@@ -1,0 +1,15 @@
+{% extends "html/template.html" %}
+
+{% block scripts %} {% endblock %}
+{% block content %}
+ 
+   {% if commit_ok %}
+      <div class="alert alert-success">Upload done!</div>
+   {% else %}
+      <div class="alert alert-danger">Upload failed: {{ message }} </div>
+   {% endif %}   
+   
+   <a href="/"> Return to main page </a>
+   
+    
+{% endblock %}

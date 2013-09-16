@@ -1,0 +1,19 @@
+{% extends "html/template.html" %}
+
+{% block scripts %} {% endblock %}
+{% block content %}
+   
+   <h3> Here are all sports i know: </h3>
+   
+   <table>
+   {% for sport in sport_list %}
+      <tr>
+        <td>
+           {{ sport }} 
+        </td>
+      </tr>
+   {% endfor %}   
+   </table>
+   
+    
+{% endblock %}

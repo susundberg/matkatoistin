@@ -1,0 +1,23 @@
+application: matkatoistin
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /css
+  static_dir: html/css
+  
+- url: /js
+  static_dir: html/js
+
+- url: /img/
+  static_dir: html/img
+  
+- url: /.*
+  script: MainPage.application
+    
+libraries:
+- name: jinja2
+  version: latest
+  

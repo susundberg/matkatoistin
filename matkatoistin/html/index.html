@@ -1,0 +1,84 @@
+{% extends "html/template.html" %}
+
+{% block scripts %} {% endblock %}
+{% block content %}
+   <h2> Hello {{ user_name }}! </h2>
+   
+   <p> After this its very easy click throught steps. If you hover over the step you get instructions. </p>
+   </p>
+   
+   <h3> 
+   <abbr title="Just click around the dates you want. Clicking selected date will make the selection to disapear! "> 
+   Step 1: Exercise dates 
+    </abbr>
+   </h3>
+   
+   <div id="datepicker" class="multidate" data-date-format="yyyy-mm-dd" ></div>
+   
+   <script src="js/bootstrap-datepicker.js"></script>
+   
+   <script>
+     $('#datepicker').datepicker({
+       todayHighlight : true ,
+       weekStart : 1
+      });
+      
+
+    </script>
+   
+   
+   <h3> 
+   <abbr title="Just start typing. It should suggest what you want. If not, check heia heia or list of all known sports on menubar."> 
+   Step 2: Sport you did
+   </h3>
+   
+   <input type="text" id="sport_search" data-provide="typeahead" data-items="1" data-source='{{sport_list}}' >
+   </br>
+
+   <div id="alert_dates" class="alert alert-danger">Hey! No dates selected!</div>
+   <div id="alert_sport" class="alert alert-danger">Hey! No sport selected!</div>
+   <script> 
+      $('#alert_dates').hide();
+      $('#alert_sport').hide();
+   </script>
+   
+   <button class="btn" type="button" id="button_next" > Next </button>
+   
+   <script>
+      $('#button_next').on('click', function (e) 
+      {
+        dates=$('#datepicker').datepicker('getFormattedDate');
+        sport=$('#sport_search').val();
+        param_ok = 1;
+        
+        if ( dates  == "" )
+        {
+           $('#alert_dates').show();
+           param_ok = 0;
+        }
+        else
+        {
+           $('#alert_dates').hide();
+        }
+        
+        if (  sport == "" )
+        {
+           $('#alert_sport').show();
+           param_ok = 0;
+        }
+        else
+        {
+           $('#alert_sport').hide();
+        }
+        
+        if ( param_ok == 1 )
+        {
+           window.location.replace("?page=details&dates=" + dates + "&sport=" + sport );
+        }
+      })
+   </script>
+
+   
+   
+    
+{% endblock %}

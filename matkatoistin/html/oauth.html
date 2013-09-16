@@ -1,0 +1,20 @@
+{% extends "html/template.html" %}
+
+{% block scripts %} {% endblock %}
+{% block content %}
+
+   {% if oauth_link %}
+      Hey! We need you to do oauth access for heiaheia.com service so we can access your account there.
+      Login to heiaheia and please authorize this app by clicking link below.
+      
+      <br>
+      
+      <h3> <a href="{{oauth_link}}"> Click me </a> </h3>
+   {% else %}
+      Super! Authorization is done. Now you we are ready to proceed with your sport achivements.
+      <br>
+      <a href="/"> Head to main page </a> 
+   {% endif %}
+   
+{% endblock %}
+ 

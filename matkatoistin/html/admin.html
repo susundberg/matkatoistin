@@ -1,0 +1,49 @@
+{% extends "html/template.html" %}
+
+{% block scripts %} {% endblock %}
+{% block content %}
+
+   {% if offset >= 100 %}
+      <a href="admin?offset={{ offset - 100 }}" > Prev page </a> 
+   {% endif %}
+   {% if sport_list_len == 100 %}
+      <a href="admin?offset={{ offset + 100 }}" > Next page </a> 
+   {% endif %}
+   
+   <ul>
+     <li>
+       <a href="admin?offset={{ offset }} "> Refresh </a>
+     </li>
+     <li>
+       <a href="admin?action=sport_list"> Get or update sports list </a>
+     </li>
+     
+     <li>
+       <a href="admin?action=sport_info&offset={{ offset }}"> Update sports info </a>
+     </li>
+     <li>
+       <a href="admin?action=sport_string"> Update all sports string </a>
+     </li>
+     
+   </ul>
+   
+   {% if message %}
+   <p> {{ message }} </p>
+   {% endif %}
+   
+   <table>
+   <tr> <td> Icon </td> <td> Name </td> <td> Id </td> <td> Params </td> </tr>
+   {% for sport in sport_list %}
+   <tr>
+      <td> 
+        {% if  sport.url_icon != None %}
+           <img src="{{ sport.url_icon }}"> 
+        {% endif %}   
+      </td>
+     <td> <a href="admin?action=sport_info&sport_id={{ sport.id }}&offset={{ offset }}"> {{ sport.name }} </a> </td> 
+     <td> {{ sport.id }} </td><td> {{ sport.param_list }} </td>
+   </tr>
+   {% endfor %}
+   </table>
+
+{% endblock %}

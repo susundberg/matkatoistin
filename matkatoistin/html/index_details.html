@@ -1,0 +1,118 @@
+{% extends "html/template.html" %}
+
+{% block scripts %} {% endblock %}
+{% block content %}
+   
+   <h3> 
+   <abbr title="Just enter what you want. Bolds are compulsory (by HeiaHeia API). I will set them zero if you dont enter something there."> 
+   Step 3: Exercise details 
+   </h3>
+   <p>  Parameters with bold are compulsory. The same parameters are applied for each selected day. </p>
+   <table cellpadding="10">
+   <tr>
+     <td>
+       <img src="{{ sport_entry.url_icon }}"> 
+     </td>
+     <td>
+       <h4> {{ sport_entry.name }} </h4>
+     </td>  
+   </tr>
+   
+   </br>
+   
+   {% for param in sport_params_compulsory %}
+      <tr>
+        <td>
+         <b>
+           {{ param }}
+         </b>
+        </td>
+        <td>
+           <input type="text" id="param_{{ param }}" data-items="1" value="0" ' >
+        </td>
+      </tr>
+   {% endfor %}   
+   {% for param in sport_params %}
+      <tr>
+        <td>
+            {% if sport_params_text[param] %}
+              {{ sport_params_text[param] }}
+            {% else %}
+              {{ param }}
+            {% endif %}
+        </td>
+        <td>
+           <input type="text" id="param_f_{{ param }}" data-items="1" ' >
+        </td>
+      </tr>
+   {% endfor %}   
+   </table>
+   
+   
+   <h3> 
+   <abbr title="Guess what this does. Are you sure?"> 
+   Step 4: Upload to HeiaHeia
+   </h3>
+   
+      <div id="alert_total_time" class="alert alert-danger">Hey! Total time for exercise is zero!</div>
+   {% for param in sport_params_compulsory %}
+      <div id="alert_{{param}}" class="alert alert-danger">Hey! Compulsory parameter '{{param}}' is undefined!</div>
+   {% endfor %}
+      
+   <script> 
+      $('#alert_total_time').hide();
+      {% for param in sport_params_compulsory %}
+      $('#alert_{{param}}').hide();
+      {% endfor %}
+   </script>
+   
+   <button class="btn" type="button" id="button_commit" > Yes please, upload </button>
+   
+    <script>
+      $('#button_commit').on('click', function (e) 
+      {
+         param_ok=1;
+         other_parameters="";
+         
+         {% for param in sport_params_compulsory %}
+            value_{{param}} = $('#param_{{param}}').val()
+            if ( value_{{param}} == "" )
+            {
+               $('#alert_{{param}}').show() ;
+               param_ok=0;
+            }
+            else
+            {
+               $('#alert_{{param}}').hide() ;
+               other_parameters=other_parameters + "&param_{{param}}=" + value_{{param}}
+            }
+         {% endfor %}
+         
+         if ( value_hours + value_minutes == 0 )
+         {
+            $('#alert_total_time').show() ;
+            param_ok=0;
+         }
+         else
+         {
+            $('#alert_total_time').hide() ;
+         }
+         
+         {% for param in sport_params %}
+            value_{{param}} = $('#param_f_{{param}}').val()
+            if ( value_{{param}} != "" )
+            {
+              other_parameters=other_parameters + "&param_f_{{param}}=" + value_{{param}}
+            }  
+         {% endfor %}
+         
+         if ( param_ok == 1 )
+         {
+            window.location.replace("?page=commit&param_dates={{param_dates}}&param_sport={{param_sport}}" + other_parameters );
+         }
+         
+      })
+    </script>
+    
+    
+{% endblock %}

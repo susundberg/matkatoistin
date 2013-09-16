@@ -1,0 +1,61 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Matkatoistin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Matkatoistin-application for uploading multiple entries to heiaheia.com">
+    <meta name="author" content="Pauli Sundberg">
+
+    <link href="css/datepicker.css" rel="stylesheet" media="screen">
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="./css/bootstrap-responsive.min.css" rel="stylesheet">
+  {% block scripts %}
+  {% endblock %}
+   
+  <script src="http://code.jquery.com/jquery.js"></script>
+</head>
+
+<body>
+   <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+         <div class="container">
+            <ul class="nav navbar-nav">
+              <li><a href="/">Home</a></li>
+              <li><a href="/sport_list">Sport list</a></li>
+              <li><a href="/about">About</a></li>
+              
+            </ul>
+            <ul class="nav navbar-nav navbar-right  pull-right">
+              {% if user_name %}
+              <li><p class="navbar-text "> {{ user_name }} </p> </li>
+              {% endif %}
+              {% if url_logout %}
+              <li><a href="{{url_logout}}">Logout</a></li>
+              {% endif %}
+           </ul>
+            
+         </div>
+      </div>
+   </div>
+
+  
+  <div class="container">
+      {% block content %}
+      {% endblock %}
+  </div>
+    
+
+    
+   <script src="./js/bootstrap.min.js"></script>
+
+</body>
+</html> 
