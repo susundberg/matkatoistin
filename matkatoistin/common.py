@@ -18,7 +18,7 @@ def get_template_base( ):
    user = users.get_current_user()
    
    if user == None:
-      return None
+      return ret
    
    ret['user_id']    = user.user_id()
    ret['user_name']  = user.nickname()
@@ -55,7 +55,7 @@ def get_oauth_client( username ):
       return (None, "Internal error, OAUTH tokens corrupted, contact admin.")
    
    client = api_heiaheia.get_client( userinfo.heiaheia_api_oa_token, userinfo.heiaheia_api_oa_secret )
-   return (client, "")
+   return (client, userinfo)
 
 
 

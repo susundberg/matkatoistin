@@ -28,7 +28,7 @@
          </b>
         </td>
         <td>
-           <input type="text" id="param_{{ param }}" data-items="1" value="0" ' >
+           <input type="text" id="param_{{ param }}" data-items="1" value="{{last_param_values[ param ]}}"> 
         </td>
       </tr>
    {% endfor %}   
@@ -42,7 +42,7 @@
             {% endif %}
         </td>
         <td>
-           <input type="text" id="param_f_{{ param }}" data-items="1" ' >
+           <input type="text" id="param_f_{{ param }}" data-items="1" value="{{last_param_values[ param ]}}"> 
         </td>
       </tr>
    {% endfor %}   
@@ -54,16 +54,9 @@
    Step 4: Upload to HeiaHeia
    </h3>
    
-      <div id="alert_total_time" class="alert alert-danger">Hey! Total time for exercise is zero!</div>
-   {% for param in sport_params_compulsory %}
-      <div id="alert_{{param}}" class="alert alert-danger">Hey! Compulsory parameter '{{param}}' is undefined!</div>
-   {% endfor %}
-      
+   <div id="alert_total_time" class="alert alert-danger">Hey! Total time for exercise is zero!</div>
    <script> 
       $('#alert_total_time').hide();
-      {% for param in sport_params_compulsory %}
-      $('#alert_{{param}}').hide();
-      {% endfor %}
    </script>
    
    <button class="btn" type="button" id="button_commit" > Yes please, upload </button>
@@ -78,14 +71,10 @@
             value_{{param}} = $('#param_{{param}}').val()
             if ( value_{{param}} == "" )
             {
-               $('#alert_{{param}}').show() ;
-               param_ok=0;
+               value_{{param}} = "0"
             }
-            else
-            {
-               $('#alert_{{param}}').hide() ;
-               other_parameters=other_parameters + "&param_{{param}}=" + value_{{param}}
-            }
+            
+            other_parameters=other_parameters + "&param_{{param}}=" + value_{{param}}
          {% endfor %}
          
          if ( value_hours + value_minutes == 0 )

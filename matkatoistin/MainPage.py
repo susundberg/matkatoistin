@@ -37,7 +37,7 @@ class HelloPage(webapp2.RequestHandler):
          return 
       
       if self.request.get("justdidlogin"):
-         if self.check_for_datatable( user ) == False:
+         if self.check_for_datatable( user ) == None:
             return
          
       template_values = common.get_template_base()
@@ -47,6 +47,7 @@ class HelloPage(webapp2.RequestHandler):
          
          all_params  = self.request.arguments()
          post_params = {}
+         
          
          sport_name = self.request.get('param_sport')
          sport_entry = datatables.TableSportInfo.all().filter("name =", sport_name ).get()
@@ -61,10 +62,10 @@ class HelloPage(webapp2.RequestHandler):
             if param.startswith("param_"):
                post_params[param] = self.request.get(param)  
                
-         (client, message ) = common.get_oauth_client( user.user_id() )
+         (client, usertable ) = common.get_oauth_client( user.user_id(),  )
       
          if client == None:
-           common.show_error_message( self.response, message )
+           common.show_error_message( self.response, usertable )
            return 
         
          if 'param_f_comment' not in post_params:
@@ -84,7 +85,19 @@ class HelloPage(webapp2.RequestHandler):
              if ret != None:
                common.show_error_message( self.response, "Error while uploading: " + ret )
                return 
+            
          template_values['commit_ok'] = 1       
+         last_post_params = {}
+         for key in post_params :
+            keynew = key.replace("param_","")
+            keynew = keynew.replace("f_","")
+            last_post_params[keynew] = post_params[key]
+            
+            
+         usertable.last_sport = json.dumps( last_post_params );
+         usertable.put()
+         
+         
          
       elif self.request.get("page") == "details":
          template = JINJA_ENVIRONMENT.get_template('html/index_details.html')
@@ -93,17 +106,37 @@ class HelloPage(webapp2.RequestHandler):
          
          template_values['param_dates']=dates
          template_values['param_sport']=sport
+         
          if dates == "" or sport == "":
             common.show_error_message( self.response, "Invalid URL!" )
             return 
          
+         usertable = self.check_for_datatable( user )
+         
+         if usertable == None:
+            common.show_error_message( self.response, "Internal error, cannot get usertable at details!" )
+            return
+         
+
+          
          sport_entry = datatables.TableSportInfo.all().filter('name =', sport ).get()
          
          if sport_entry == None:
             common.show_error_message( self.response, "Cannot find sport '%s'!" % sport )
             return 
          
+         last_param_values = {}
+         if usertable.last_sport != None:
+            last_values = json.loads( usertable.last_sport )
+            if "sport_id" in last_values :
+               if int(last_values["sport_id"]) == sport_entry.id:
+                  last_param_values = last_values
+         
          template_values['sport_params_compulsory'] = [ "hours", "minutes" ]
+         
+         for param_comp in template_values['sport_params_compulsory'] :
+            if param_comp not in last_param_values:
+               last_param_values[param_comp] = ""
          
          param_list=["comment"]  
          explain_hash = {}
@@ -111,16 +144,17 @@ class HelloPage(webapp2.RequestHandler):
             
             if param == "":
               continue
-           
-
             
             param_new = re.sub( r"[^\w_]","_",param);
             explain_hash[param_new]=param.lower()
             param_list.append(param_new)
-            
-         template_values['sport_params'] = param_list
+            if param_new not in last_param_values:
+              last_param_values[param_new] = ""
+              
+         template_values['last_param_values'] = last_param_values
+         template_values['sport_params']      = param_list
          template_values['sport_params_text'] = explain_hash   
-         template_values['sport_entry']   = sport_entry
+         template_values['sport_entry']       = sport_entry
          
       else:
          template = JINJA_ENVIRONMENT.get_template('html/index.html')
@@ -140,11 +174,11 @@ class HelloPage(webapp2.RequestHandler):
       userinfo = common.get_userinfo( user.user_id() )
       
       if userinfo != None:
-         return True
+         return userinfo
       
       # We did not have proper user created, we need to show oauth page
       self.redirect('/oauthme')
-      return False
+      return None
    
    def get_sport_list( self ):
       entry = datatables.TableSportInfoString.all().get()
@@ -156,6 +190,7 @@ class HelloPage(webapp2.RequestHandler):
       full_string = "[\""
       full_string += ( "\",\"".join(full_list) )
       full_string += ( "\"]" );
+      
       
       
       return full_string
@@ -172,9 +207,7 @@ class ListPage(webapp2.RequestHandler):
       if user == None:
          return 
       
-      if self.request.get("justdidlogin"):
-         if self.check_for_datatable( user ) == False:
-            return
+
          
       template_values = common.get_template_base()
    
@@ -200,10 +233,7 @@ class AboutPage(webapp2.RequestHandler):
       user = common.get_loginuser( self.response )
       if user == None:
          return 
-      
-      if self.request.get("justdidlogin"):
-         if self.check_for_datatable( user ) == False:
-            return
+
          
       template_values = common.get_template_base()
       template = JINJA_ENVIRONMENT.get_template('html/index_about.html')

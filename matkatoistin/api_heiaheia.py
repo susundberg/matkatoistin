@@ -205,6 +205,7 @@ def download_sport_list( client ):
             sport_id     = node.getElementsByTagName("id")[0].firstChild.nodeValue
             sport_hash[ sport_name ] = sport_id 
          
+         break; 
          page_loop = page_loop + 1
       # End of while here
 
