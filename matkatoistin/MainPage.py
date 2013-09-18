@@ -229,11 +229,6 @@ class ListPage(webapp2.RequestHandler):
 class AboutPage(webapp2.RequestHandler):
    def get(self):
       template_values = { }
-      
-      user = common.get_loginuser( self.response )
-      if user == None:
-         return 
-
          
       template_values = common.get_template_base()
       template = JINJA_ENVIRONMENT.get_template('html/index_about.html')
