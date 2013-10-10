@@ -5,8 +5,7 @@ import oauth2 as oauth
 import xml.dom.minidom
 import json
 
-consumer_key = 'aalYo6cjDfUpKXZaJHgI'
-consumer_secret = 'oymujFPN0Ar9rkQmV8Py9QgBzPIfKlar8CJU4oZH'
+from api_keys import api_keys
 
 request_token_url = 'http://www.heiaheia.com/oauth/request_token'
 access_token_url = 'http://www.heiaheia.com/oauth/access_token'
@@ -18,7 +17,7 @@ authorize_url = 'http://www.heiaheia.com/oauth/authorize'
 ##########################################################################################################
 def generate_oauth_link( return_dict ):
 
-   consumer = oauth.Consumer(consumer_key, consumer_secret)
+   consumer = oauth.Consumer(api_keys.consumer_key, api_keys.consumer_secret)
    client = oauth.Client(consumer)
 
    # Step 1: Get a request token. This is a temporary token that is used for 
@@ -34,18 +33,11 @@ def generate_oauth_link( return_dict ):
    
    request_token = dict(urlparse.parse_qsl(content))
 
-   print "Request Token:"
-   print "    - oauth_token        = %s" % request_token['oauth_token']
-   print "    - oauth_token_secret = %s" % request_token['oauth_token_secret']
-   print 
-
    # Step 2: Redirect to the provider. Since this is a CLI script we do not 
    # redirect. In a web application you would redirect the user to the URL
    # below.
 
    oauth_link = authorize_url + "?" + urlencode( { 'oauth_token'    : request_token['oauth_token'] } )
-   
-   print "Go to the following link in your browser: '%s'" % oauth_link
    
    return_dict['oauth_link']         = oauth_link
    return_dict['oauth_token']        = request_token['oauth_token']
@@ -68,7 +60,7 @@ def get_oauth_tokens( conf ):
    token = oauth.Token( conf['oauth_token'], conf['oauth_token_secret'])
    token.set_verifier( conf['oauth_verifier'])
    
-   consumer = oauth.Consumer(consumer_key, consumer_secret)
+   consumer = oauth.Consumer(api_keys.consumer_key, api_keys.consumer_secret)
    client = oauth.Client(consumer, token)
    resp, content = client.request(access_token_url, "POST")
    
@@ -94,7 +86,7 @@ def get_oauth_tokens( conf ):
 
 
 def get_client( heiaheia_api_oa_token, heiaheia_api_oa_secret ):
-   consumer = oauth.Consumer(key=consumer_key, secret=consumer_secret)
+   consumer = oauth.Consumer(key=api_keys.consumer_key, secret=api_keys.consumer_secret)
    access_token = oauth.Token(key=heiaheia_api_oa_token, secret=heiaheia_api_oa_secret )
    client = oauth.Client(consumer, access_token)
    return client
@@ -167,46 +159,38 @@ def update_sports_for( client, sport_name, sport_id  ):
 ##########################################################################################################
 #
 ##########################################################################################################
-def download_sport_list( client ):
-      
-      page_loop = 1;
+def download_sport_list( client, page_loop ):
+
       sport_hash = {}
 
-      print "Download sport id list from heiaheia.com. This is done only if conf file has the entry missing.\n";
-      while ( True ):
+      full_url = "http://www.heiaheia.com/api/v1/sports?page=%s" % page_loop
 
-         full_url = "http://www.heiaheia.com/api/v1/sports?page=%d" % page_loop
+      resp, content = client.request(full_url , "GET" )
 
-         resp, content = client.request(full_url , "GET" )
-
-         if resp['status'] != '200' :
-            print " Error responce: " + resp['status'] ;
-            print "----------- ERROR: GOT CONTENT --------------"
-            print content
-            return None
-            
-         print "Fetched page %d" % page_loop
+      if resp['status'] != '200' :
+         print " Error responce: " + resp['status'] ;
+         print "----------- ERROR: GOT CONTENT --------------"
+         print content
+         return None
          
-         dom = xml.dom.minidom.parseString(content)
+      print "Fetched page %s" % page_loop
+      
+      dom = xml.dom.minidom.parseString(content)
+      
+      if ( dom == None ):
+         print "Error while parsing"
+         return None
+      
+      sport_nodes =  dom.getElementsByTagName("sport");
+      
+      if ( len ( sport_nodes ) == 0 ):
+         print "Empty page received, no more page queried.\n"
          
-         if ( dom == None ):
-            print "Error while parsing"
-            return None
+      for node in sport_nodes:
+         sport_name   = node.getElementsByTagName("name")[0].firstChild.nodeValue
+         sport_name   = sport_name.replace("'"," ");
+         sport_id     = node.getElementsByTagName("id")[0].firstChild.nodeValue
+         sport_hash[ sport_name ] = sport_id 
          
-         sport_nodes =  dom.getElementsByTagName("sport");
-         
-         if ( len ( sport_nodes ) == 0 ):
-            print "Empty page received, no more page queried.\n"
-            break
-            
-         for node in sport_nodes:
-            sport_name   = node.getElementsByTagName("name")[0].firstChild.nodeValue
-            sport_name   = sport_name.replace("'"," ");
-            sport_id     = node.getElementsByTagName("id")[0].firstChild.nodeValue
-            sport_hash[ sport_name ] = sport_id 
-         
-         break; 
-         page_loop = page_loop + 1
-      # End of while here
 
       return sport_hash;

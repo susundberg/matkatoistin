@@ -7,13 +7,24 @@ from google.appengine.api import users
 
 import datatables
 import api_heiaheia
+import json
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'])
 
 
-def get_template_base( ):
+def write_responce( response,  template_page, template_values):
+   if 'machine' in template_values and template_values['machine']:
+      print "ITS MACHINE!"
+      template_values['page'] = template_page
+      response.write( json.dumps( template_values ) )
+   else:
+      template = JINJA_ENVIRONMENT.get_template(template_page)
+      response.write(template.render(template_values))
+   
+   
+def get_template_base( machine = None ):
    ret = {}
    user = users.get_current_user()
    
@@ -23,17 +34,24 @@ def get_template_base( ):
    ret['user_id']    = user.user_id()
    ret['user_name']  = user.nickname()
    ret['url_logout'] = users.create_logout_url('/')
+   
+   if machine:
+      ret['machine']    = "true"
    return ret;
 
 
-def get_loginuser( response ):
+def get_loginuser( response, machine = None ):
    user = users.get_current_user()
    
    if user == None:
       template_values = {};
       template_values ['login_url'] = users.create_login_url("?justdidlogin=1")
-      template = JINJA_ENVIRONMENT.get_template('html/loginpage.html')
-      response.write(template.render(template_values))
+      if machine:
+         template_values['machine'] = "true"
+         
+      template_page = 'html/loginpage.html'
+      
+      write_responce( response, template_page , template_values )
       return None
    
    return user
@@ -65,7 +83,7 @@ def show_error_message( response, message, link_info = None, link = None ):
       link_info = "Click here to return mainpage"
       link = "/"
    
-   values = get_template_base ();
+   values = get_template_base (  );
    
    template = JINJA_ENVIRONMENT.get_template('html/error.html')
    

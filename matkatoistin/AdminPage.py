@@ -14,15 +14,13 @@ import api_heiaheia
 import common
 import datatables
 
-JINJA_ENVIRONMENT = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
-    extensions=['jinja2.ext.autoescape'])
 
 #######################################################################################
 #
 #######################################################################################
-class Admin_console(webapp2.RequestHandler):
-    
+class AdminPage(webapp2.RequestHandler):
+   
+   queue_user = "__QUEUE"
    def get_current_offset( self ):
       try:
          current_offset = int(self.request.get("offset"))
@@ -37,21 +35,34 @@ class Admin_console(webapp2.RequestHandler):
    def get(self):
       user = users.get_current_user()
       if user:
-            if users.is_current_user_admin() == False:
-               error_message = "Sorry, you dont have admin rights"
-               common.show_error_message( self.response, error_message );
-               return 
-      else:
-         common.show_error_message( self.response, 
-                                    "Sorry, you have to login first", "Click here to login with google account", 
-                                    users.create_login_url(self.request.uri) );
-         return 
-      
+         if users.is_current_user_admin() == False:
+            error_message = "Sorry, you dont have admin rights"
+            common.show_error_message( self.response, error_message );
+            return 
+         
+         userinfo = common.get_userinfo( user.user_id() )
+         
+         if userinfo == None:
+            error_message = "Sorry, i cannot find you!"
+            common.show_error_message( self.response, error_message );
+            return 
+         
+         # This is admin user, make oauth tokens for queue
+         userinfo_queue = common.get_userinfo(AdminPage.queue_user )
+         if userinfo_queue == None:
+            userinfo_queue = datatables.TableUserInfo()
+            
+         userinfo_queue.username = AdminPage.queue_user
+         userinfo_queue.heiaheia_api_oa_token  = userinfo.heiaheia_api_oa_token
+         userinfo_queue.heiaheia_api_oa_secret = userinfo.heiaheia_api_oa_secret
+         userinfo_queue.last_sport = None
+         userinfo_queue.put()
+
       template_values = {};
       if self.request.get('action') == "sport_list":
-         template_values['message'] = self.update_sport_list( user.user_id() ) ;
+         template_values['message'] = self.update_sport_list( AdminPage.queue_user) ;
       elif self.request.get('action') == "sport_info":
-         template_values['message'] = self.update_sport_list_info( user.user_id() , self.request.get('sport_id') );
+         template_values['message'] = self.update_sport_list_info( AdminPage.queue_user , self.request.get('sport_id') );
       elif self.request.get('action') == "sport_string":
          template_values['message'] = self.update_sport_list_string( );
       else:
@@ -62,13 +73,12 @@ class Admin_console(webapp2.RequestHandler):
       current_offset = self.get_current_offset(  )
 
          
-      template_values['sport_list']     = query.fetch( 100, current_offset )
+      template_values['sport_list']     = query.fetch( 10, current_offset )
       template_values['sport_list_len'] = len( template_values['sport_list']     )
       template_values['offset'] = current_offset ;
       
-      # Ok we have user and the user is admin
-      template = JINJA_ENVIRONMENT.get_template('html/admin.html')
-      self.response.write(template.render(template_values))
+      
+      common.write_responce( self.response,  "html/admin.html", template_values)
       return 
    
    def update_sport_list_string( self ):
@@ -105,7 +115,7 @@ class Admin_console(webapp2.RequestHandler):
          return message
       
       retmessage = "So for good, oauth ready\n"
-      sport_name_hash = api_heiaheia.download_sport_list( client )
+      sport_name_hash = api_heiaheia.download_sport_list( client, self.request.get("page") )
       
       if sport_name_hash == None:
          retmessage = retmessage + "Call to 'download_sport_list' failed!\n"
@@ -153,7 +163,7 @@ class Admin_console(webapp2.RequestHandler):
             return retmessage
       else :
           current_offset = self.get_current_offset(  )
-          sport_entry_list = query.fetch( 100, offset=current_offset );
+          sport_entry_list = query.fetch( 10, offset=current_offset );
       retmessage = retmessage + "Start process\n"
       
       for sport_entry in sport_entry_list:
@@ -173,3 +183,16 @@ class Admin_console(webapp2.RequestHandler):
          
          sport_entry.put()
       return retmessage
+
+
+
+
+
+
+
+###################################################################################################
+# Main redirection
+###################################################################################################
+application = webapp2.WSGIApplication([
+    ('/admin', AdminPage ),
+    ], debug=True)

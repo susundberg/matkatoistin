@@ -1,0 +1,4 @@
+cron:
+- description: fetch page 0
+  url: /queue
+  schedule: every sunday 00:00

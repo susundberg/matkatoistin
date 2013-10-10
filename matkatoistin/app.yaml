@@ -17,6 +17,14 @@ handlers:
 
 - url: /img/
   static_dir: html/img
+
+- url: /admin.*
+  script: AdminPage.application
+#  login: admin
+  
+- url: /queue.*
+  script: QueuePage.application
+#  login: admin
   
 - url: /.*
   script: MainPage.application
@@ -24,4 +32,3 @@ handlers:
 libraries:
 - name: jinja2
   version: latest
-  

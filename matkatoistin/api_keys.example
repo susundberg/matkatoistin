@@ -1,0 +1,4 @@
+class api_keys:
+  consumer_key = "XXXXXXXXXXXXXXXXXXXX"
+  consumer_secret = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+

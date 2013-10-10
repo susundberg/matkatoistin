@@ -3,11 +3,11 @@
 {% block scripts %} {% endblock %}
 {% block content %}
 
-   {% if offset >= 100 %}
-      <a href="admin?offset={{ offset - 100 }}" > Prev page </a> 
+   {% if offset >= 10 %}
+      <a href="admin?offset={{ offset - 10 }}" > Prev page </a> 
    {% endif %}
-   {% if sport_list_len == 100 %}
-      <a href="admin?offset={{ offset + 100 }}" > Next page </a> 
+   {% if sport_list_len == 10 %}
+      <a href="admin?offset={{ offset + 10 }}" > Next page </a> 
    {% endif %}
    
    <ul>
@@ -15,7 +15,7 @@
        <a href="admin?offset={{ offset }} "> Refresh </a>
      </li>
      <li>
-       <a href="admin?action=sport_list"> Get or update sports list </a>
+       <a href="admin?action=sport_list&page=0"> Get or update sports list </a>
      </li>
      
      <li>

@@ -13,16 +13,7 @@ import json
 import common
 import datatables
 import api_heiaheia
-import Admin_console
 import re
-
-JINJA_ENVIRONMENT = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
-    extensions=['jinja2.ext.autoescape'])
-
-
-
-
 
 
 ###################################################################################################
@@ -32,18 +23,18 @@ class HelloPage(webapp2.RequestHandler):
    def get(self):
       template_values = { }
       
-      user = common.get_loginuser( self.response )
+      user = common.get_loginuser( self.response, self.request.get("machine") )
       if user == None:
          return 
       
       if self.request.get("justdidlogin"):
-         if self.check_for_datatable( user ) == None:
+         if self.check_for_datatable( user  )== None:
             return
          
-      template_values = common.get_template_base()
+      template_values = common.get_template_base( self.request.get("machine") )
       
       if self.request.get("page") == "commit":
-         template = JINJA_ENVIRONMENT.get_template('html/index_commit.html')
+         
          
          all_params  = self.request.arguments()
          post_params = {}
@@ -100,7 +91,7 @@ class HelloPage(webapp2.RequestHandler):
          
          
       elif self.request.get("page") == "details":
-         template = JINJA_ENVIRONMENT.get_template('html/index_details.html')
+         template_page = 'html/index_details.html'
          dates=self.request.get("dates") 
          sport=self.request.get("sport")
          
@@ -157,7 +148,7 @@ class HelloPage(webapp2.RequestHandler):
          template_values['sport_entry']       = sport_entry
          
       else:
-         template = JINJA_ENVIRONMENT.get_template('html/index.html')
+         template_page = 'html/index.html'
          full_list = self.get_sport_list()
          
          if full_list == None:
@@ -165,19 +156,24 @@ class HelloPage(webapp2.RequestHandler):
          
          template_values['sport_list'] = full_list
          
-      self.response.write(template.render(template_values))
+      common.write_responce( self.response,  template_page, template_values)
 
       
 
    # Check that we have properply added user in database
-   def check_for_datatable(self, user):
+   def check_for_datatable(self, user ):
       userinfo = common.get_userinfo( user.user_id() )
       
       if userinfo != None:
          return userinfo
       
       # We did not have proper user created, we need to show oauth page
-      self.redirect('/oauthme')
+      to_redirect = '/oauthme'
+      
+      if self.request.get("machine"):
+         to_redirect = to_redirect + "?machine=1"
+      print "USERINFO REDIRECT: " + to_redirect
+      self.redirect(to_redirect)
       return None
    
    def get_sport_list( self ):
@@ -203,13 +199,13 @@ class ListPage(webapp2.RequestHandler):
    def get(self):
       template_values = { }
       
-      user = common.get_loginuser( self.response )
+      user = common.get_loginuser( self.response, self.request.get("machine") )
       if user == None:
          return 
       
 
          
-      template_values = common.get_template_base()
+      template_values = common.get_template_base( self.request.get("machine") )
    
       entry = datatables.TableSportInfoString.all().get()
 
@@ -220,8 +216,8 @@ class ListPage(webapp2.RequestHandler):
       items = entry.all_sports.split(";")
       items.sort()
       template_values['sport_list'] = items
-      template = JINJA_ENVIRONMENT.get_template('html/index_list.html')
-      self.response.write(template.render(template_values))
+      template_page = 'html/index_list.html'
+      common.write_responce( self.response,  template_page, template_values)
 ###################################################################################################
 # This is request for getting for OAUTH tokens for current user
 ###################################################################################################
@@ -230,20 +226,23 @@ class AboutPage(webapp2.RequestHandler):
    def get(self):
       template_values = { }
          
-      template_values = common.get_template_base()
-      template = JINJA_ENVIRONMENT.get_template('html/index_about.html')
-      self.response.write(template.render(template_values))
+      template_values = common.get_template_base( self.request.get("machine") )
+      template_page   = 'html/index_about.html'
+      
+      common.write_responce( self.response,  template_page, template_values)
+      
+      
 ###################################################################################################
 # This is request for getting for OAUTH tokens for current user
 ###################################################################################################
 class OauthPage(webapp2.RequestHandler):
    # First step is to show page with 'please click to auth' with proper oauth linke
    def get(self):
-      user = common.get_loginuser( self.response  )
+      user = common.get_loginuser( self.response, self.request.get("machine") )
       if user == None:
          return 
       
-      template_values = common.get_template_base()
+      template_values = common.get_template_base( self.request.get("machine") )
      
      
       if self.request.get("auth_done") != "yes":
@@ -307,8 +306,8 @@ class OauthPage(webapp2.RequestHandler):
       
       
       # All done
-      template = JINJA_ENVIRONMENT.get_template('html/oauth.html')
-      self.response.write(template.render(template_values))
+      template_page = 'html/oauth.html'
+      common.write_responce( self.response,  template_page , template_values)
      
    
 
@@ -319,7 +318,6 @@ application = webapp2.WSGIApplication([
     ('/', HelloPage),
     ('/sport_list', ListPage),
     ('/about', AboutPage),
-    ('/admin', Admin_console.Admin_console ),
     ('/oauthme', OauthPage)
     ], debug=True)
 
