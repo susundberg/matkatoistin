@@ -173,7 +173,7 @@ def download_sport_list( client, page_loop ):
          print content
          return None
          
-      print "Fetched page %s" % page_loop
+      # print "Fetched page %s" % page_loop
       
       dom = xml.dom.minidom.parseString(content)
       
