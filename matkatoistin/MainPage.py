@@ -35,7 +35,7 @@ class HelloPage(webapp2.RequestHandler):
       
       if self.request.get("page") == "commit":
          
-         
+         template_page = 'html/index_commit.html'
          all_params  = self.request.arguments()
          post_params = {}
          
@@ -238,16 +238,24 @@ class AboutPage(webapp2.RequestHandler):
 class OauthPage(webapp2.RequestHandler):
    # First step is to show page with 'please click to auth' with proper oauth linke
    def get(self):
-      user = common.get_loginuser( self.response, self.request.get("machine") )
+      is_machine = self.request.get("machine")
+      
+      user = common.get_loginuser( self.response, is_machine  )
       if user == None:
          return 
       
-      template_values = common.get_template_base( self.request.get("machine") )
+      template_values = common.get_template_base( is_machine  )
      
      
       if self.request.get("auth_done") != "yes":
          values = {} 
-         values['url_callback'] = self.request.uri + "?auth_done=yes"
+         if is_machine :
+            values['url_callback'] = self.request.host_url
+         else:   
+            values['url_callback'] = self.request.uri + "?auth_done=yes"
+         
+         print "SET CALLBACK: " + values['url_callback']
+         
          if api_heiaheia.generate_oauth_link( values ) == False:
             common.show_error_message( self.response, "Error while get oauth link: %s " % values["message"] )
          
@@ -259,14 +267,12 @@ class OauthPage(webapp2.RequestHandler):
             print "Remove entry : " + oldinfo.heiaheia_api_oa_token 
             oldinfo.delete () 
          
-         tmpuserinfo = datatables.TableTempUserInfo()
+         tmpuserinfo                        = datatables.TableTempUserInfo()
          tmpuserinfo.username               = user.user_id()
          tmpuserinfo.heiaheia_api_oa_token  = values["oauth_token"]
          tmpuserinfo.heiaheia_api_oa_secret = values["oauth_token_secret"]
          tmpuserinfo.put()
          template_values['oauth_link']      = values["oauth_link"]
-         
-         
          
       else:
          query       = datatables.TableTempUserInfo.all().filter("username =",user.user_id())
@@ -290,7 +296,6 @@ class OauthPage(webapp2.RequestHandler):
             common.show_error_message( self.response, "Error while aquiring oauth tokens: %s " % tokens["message"] )
             return 
          
-         print "Add new user"
          # We have oauth done ok, now we can add proper user
          userinfo = datatables.TableUserInfo()
          userinfo.username = user.user_id()
@@ -302,7 +307,7 @@ class OauthPage(webapp2.RequestHandler):
          
          userinfo.put()
          tmpuserinfo.delete()
-         print "Database updated!"
+         template_values["oauth_success"] = "yes"
       
       
       # All done

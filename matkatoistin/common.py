@@ -16,8 +16,12 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 def write_responce( response,  template_page, template_values):
    if 'machine' in template_values and template_values['machine']:
-      print "ITS MACHINE!"
+      
       template_values['page'] = template_page
+      
+      for key in template_values:
+         if type( template_values[key] ) != str:
+            template_values[key]="NOT STRING"
       response.write( json.dumps( template_values ) )
    else:
       template = JINJA_ENVIRONMENT.get_template(template_page)
