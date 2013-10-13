@@ -9,7 +9,7 @@ import datetime
 
 
 def print_usage():
-   print "USAGE: ./python test_server <host to test> <settings.json>"
+   print "USAGE: ./python test_server <host to test> "
 
 def PrintTestOk():
   callerframerecord = inspect.stack()[1] 
@@ -28,13 +28,14 @@ def PrintFrame():
  
 def PrintRequest(r):
    print "-------------HEADERS------------------"
+   print "STATUS CODE %d " % r.status_code
    print r.headers
    print "-------------CONTENT------------------"
    print r.text
    print "-------------COOKIE ------------------"
    print r.cookies
    
-
+   
 class TestScript:
  def __init__(self, host):
       self.host_base = host
@@ -68,12 +69,29 @@ class TestScript:
       print "\n ERRORS on config. Writing template config file all bail out!\n"
       exit(1)
       
+ def get_json( self ):
+    try:
+       ret = json.loads( self.last_request.text )
+    except:
+       print "Error! JSON loading failed"
+       self.error_exit()
+    return ret
+ 
  def get_request( self, url ):
-   self.last_request = requests.get(self.host_base + url , cookies=self.cookies )
+   self.last_request_address = self.host_base + url 
+
+   if self.cookies:
+      self.last_request = requests.get( self.last_request_address  , cookies=self.cookies )
+   else:
+      self.last_request = requests.get( self.last_request_address  )
+      
+   if ( self.last_request .status_code != requests.codes.ok ):
+      self.error_exit()
+      
    return self.last_request 
 
  def error_exit(self):
-    print "ERROR! Request failed\n"
+    print "ERROR! Request failed on url '%s'\n" % self.last_request_address 
     PrintFrame()
     PrintRequest(self.last_request )
     exit(1);
@@ -81,61 +99,45 @@ class TestScript:
  def do_testing(self):
      
    print "TESTING SERVER " + host_base
-   r = self.get_request( "/" )
 
-   #######################################################
-   # LOGIN
-   #######################################################
-   if (r.status_code != requests.codes.ok ):
-      self.error_exit()
-      
-   PrintTestOk()
-
-   # Then do login 
+   # Do login 
    r = self.get_request("?machine=true")
    ret = json.loads( r.text )
    loginurl = ret['login_url']
 
    r = self.get_request( "_ah/login?email=test%40example.com&admin=True&action=Login&continue=http%3A%2F%2Flocalhost%3A8080%2F%3Fjustdidlogin%3D1" )
-   if (r.status_code != requests.codes.ok ):
-      PrintFrame()
-      PrintRequest(r)
-      exit(1);
 
-   cookies = r.history[0].cookies
+   self.cookies = r.history[0].cookies
 
-   print "GOT COOKIES: %s"  % cookies
+   print "GOT COOKIES: %s"  % self.cookies
 
-
-   r = self.get_request( "oauthme?machine=true", cookies=cookies )
-   if (r.status_code != requests.codes.ok ):
-      PrintFrame()
-      PrintRequest(r)
-      exit(1);
-
-   PrintRequest(r)
-   resp = json.loads(r.text)
-   if "oauth_link" not in resp :
-      print "Invalid response, key oauth_link missing"
-      PrintFrame()
-      exit(1)
-
-   print "Please click following link " + resp['oauth_link'] 
-   wait_for_input = raw_input("Press enter when authorization done")
-   # The callback will set browser to local page, handling the rest
-   # We should now have proper oauth and all, get some sports
+   r = self.get_request( "admin" )
+   r = self.get_request( "admin?action=sport_list&page=0&machine=true")
+   r = self.get_request( "admin?action=sport_string&machine=true")
+   r = self.get_request( "admin?action=sport_info&offset=0&machine=true")
+   current_date=datetime.datetime.now().strftime("%Y-%m-%d")
+   r = self.get_request( "?page=details&dates=%s&sport=Dancing&machine=true" % current_date  )
+   r = self.get_request( "?page=commit&param_dates=%s&param_sport=Dancing&param_hours=1&param_minutes=2&param_f_comment=Hello&machine=true" % current_date )
+   
+   ret = self.get_json()
+   
+   if "commit_ok" not in ret:
+      print "Something went wrong with commit"
+      self.error_exit
+   
+   print "COMMIT OK, All fine, bye!"
+   
 
 
 
 ###########################################################################################################
 # MAIN SCRIPT STARTS HERE
 ###########################################################################################################
-if len(sys.argv) != 3:
+if len(sys.argv) != 2:
    print_usage()
    exit(0)
    
 host_base         = sys.argv[1];
-settings_file     = sys.argv[2];
 test = TestScript( host_base )
 test.do_testing()
 
