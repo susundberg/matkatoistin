@@ -1,4 +1,4 @@
 cron:
-- description: fetch page 0
-  url: /queue
+- description: Update all items
+  url: /admin?action=queue
   schedule: every sunday 00:00

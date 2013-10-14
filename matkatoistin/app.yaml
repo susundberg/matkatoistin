@@ -22,10 +22,6 @@ handlers:
   script: AdminPage.application
   login: admin
   
-- url: /queue.*
-  script: QueuePage.application
-  login: admin
-  
 - url: /.*
   script: MainPage.application
 

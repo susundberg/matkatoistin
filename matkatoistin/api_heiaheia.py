@@ -183,9 +183,6 @@ def download_sport_list( client, page_loop ):
       
       sport_nodes =  dom.getElementsByTagName("sport");
       
-      if ( len ( sport_nodes ) == 0 ):
-         print "Empty page received, no more page queried.\n"
-         
       for node in sport_nodes:
          sport_name   = node.getElementsByTagName("name")[0].firstChild.nodeValue
          sport_name   = sport_name.replace("'"," ");

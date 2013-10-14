@@ -3,26 +3,25 @@
 {% block scripts %} {% endblock %}
 {% block content %}
 
-   {% if offset >= 10 %}
-      <a href="admin?offset={{ offset - 10 }}" > Prev page </a> 
-   {% endif %}
-   {% if sport_list_len == 10 %}
-      <a href="admin?offset={{ offset + 10 }}" > Next page </a> 
-   {% endif %}
+
+   <a href="admin?show=yes"> Show sport list first page</a>
+   <a href="admin?show=yes&cursor=yes"> Show sport list next page</a>
    
    <ul>
      <li>
        <a href="admin?offset={{ offset }} "> Refresh </a>
      </li>
      <li>
-       <a href="admin?action=sport_list&page=0"> Get or update sports list </a>
+       <a href="admin?action=sport_list&page=0"> Update sports list </a>
      </li>
-     
      <li>
-       <a href="admin?action=sport_info&offset={{ offset }}"> Update sports info </a>
+       <a href="admin?action=sport_info"> Update sports info </a>
      </li>
      <li>
        <a href="admin?action=sport_string"> Update all sports string </a>
+     </li>
+     <li>
+       <a href="admin?action=queue"> Force start update</a>
      </li>
      
    </ul>
