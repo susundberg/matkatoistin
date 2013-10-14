@@ -5,6 +5,7 @@ import urllib
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.api import memcache
 
 import jinja2
 import webapp2
@@ -177,12 +178,18 @@ class HelloPage(webapp2.RequestHandler):
       return None
    
    def get_sport_list( self ):
-      entry = datatables.TableSportInfoString.all().get()
-      if entry == None or entry.all_sports == None:
-         common.show_error_message( self.response, "Cannot get full sport list for some reason!" )
-         return None
       
-      full_list = entry.all_sports.split(";")
+      full_string = memcache.get('full_string')
+      
+      if full_string == None:
+         entry = datatables.TableSportInfoString.all().get()
+         if entry == None or entry.all_sports == None:
+            common.show_error_message( self.response, "Cannot get full sport list for some reason!" )
+            return None
+         full_string = entry.all_sports
+         memcache.set('full_string', full_string )
+         
+      full_list = full_string.split(";")
       full_string = "[\""
       full_string += ( "\",\"".join(full_list) )
       full_string += ( "\"]" );
