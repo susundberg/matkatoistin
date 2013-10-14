@@ -178,9 +178,9 @@ class AdminPage(webapp2.RequestHandler):
             return retmessage
       elif self.request.get("info_cursor"):
           query.with_cursor(start_cursor=self.request.get("info_cursor"))
-          sport_entry_list = query.fetch( 10 );
+          sport_entry_list = query.fetch( 32 );
       else:
-          sport_entry_list = query.fetch( 10 );
+          sport_entry_list = query.fetch( 32 );
           
       retmessage = retmessage + "Start process\n"
       
