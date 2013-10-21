@@ -119,7 +119,7 @@ def upload_new_entry( client, sport_info ):
   # Check that we have no zero lengths fields
   clean_post_data = dict( (k, v ) for k, v in post_data.iteritems() if v )
        
-  print "Uploading ... : %s " % clean_post_data 
+  # print "Uploading ... : %s " % clean_post_data 
   
   resp, content = client.request(full_url, "POST", urlencode( post_data ) );
   #

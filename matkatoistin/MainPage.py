@@ -72,7 +72,7 @@ class HelloPage(webapp2.RequestHandler):
                 common.show_error_message( self.response, "Something is wrong with date '%s'" % date)
                 return
              post_params['param_date'] = date
-             print "Upload for " + date
+             #print "Upload for " + date
              ret = api_heiaheia.upload_new_entry( client, post_params )
              if ret != None:
                common.show_error_message( self.response, "Error while uploading: " + ret )
@@ -261,7 +261,7 @@ class OauthPage(webapp2.RequestHandler):
          else:   
             values['url_callback'] = self.request.uri + "?auth_done=yes"
          
-         print "SET CALLBACK: " + values['url_callback']
+        #  print "SET CALLBACK: " + values['url_callback']
          
          if api_heiaheia.generate_oauth_link( values ) == False:
             common.show_error_message( self.response, "Error while get oauth link: %s " % values["message"] )

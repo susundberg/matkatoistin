@@ -27,7 +27,7 @@ class AdminPage(webapp2.RequestHandler):
    queue_user = "__QUEUE"
    
    def handle_queue_logic_next( self, current_task ):
-      print "NEXT LOGIC CALLED WITH TASK: %s " % current_task
+      #print "NEXT LOGIC CALLED WITH TASK: %s " % current_task
       
       if current_task == None:
          taskqueue.add( url="/admin?action=sport_list&page=0&queue=1", method="GET" )
@@ -202,8 +202,12 @@ class AdminPage(webapp2.RequestHandler):
          sport_entry.put()
       
       if self.request.get("queue"):
+         loop = 0
+         if self.request.get("loop"):
+            loop = int( self.request.get("loop") ) + 1
+            
          if len(sport_entry_list) > 0:
-            taskqueue.add( url="/admin?action=sport_info&info_cursor=%s&queue=1" % query.cursor(), method="GET" )
+            taskqueue.add( url="/admin?action=sport_info&info_cursor=%s&loop=%d&queue=1" % (query.cursor(),loop), method="GET" )
          else:
             self.handle_queue_logic_next( "sport_info" )
             
